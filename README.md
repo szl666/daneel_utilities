@@ -1,5 +1,7 @@
 # daneel_utilities
 
+使用前请先修改sub_script_head, sub_script_head_py, sub_script_head_gpu中的zlsong为自己账户名
+
 sub_vasp ------ 自动批量提交VASP任务，结构优化任务自动纠错(机器学习小组)，具体使用运行sub_vasp -h查看
 
 sub_program ------ 提交程序任务到wang队列(修改队列可修改sub_script_head_py文件)，使用示例：sub_python "python ..."，或写一个文件名为command_file，里面写入程序命令，然后输入sub_python
