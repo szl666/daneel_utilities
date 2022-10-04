@@ -6,7 +6,7 @@
 
 sub_vasp ------ 自动批量提交VASP任务，结构优化任务自动纠错(机器学习小组)，具体使用运行sub_vasp -h查看
 
-sub_program ------ 提交程序任务到wang队列(修改队列可修改sub_script_head_py文件)，使用示例：sub_python "python ..."，或写一个文件名为command_file，里面写入程序命令，然后输入sub_python
+sub_program ------ 提交程序任务到wang队列(修改队列可修改sub_script_head_py文件)，使用示例：sub_program "python ..."，或写一个文件名为command_file，里面写入程序命令，sub_program
 
 sub_gpu ------ 提交程序任务到GPU节点(修改GPU数量可修改sub_script_head_gpu文件)，使用示例：sub_gpu "python ..."，或写一个文件名为command_file，里面写入程序命令，然后输入sub_gpu
 
