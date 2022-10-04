@@ -1,0 +1,39 @@
+
+path1=$1
+files1=$(ls -r $path1)
+for filename1 in $files1
+do
+   if [ -d "$filename1" ]; then
+   cd $filename1
+   path2=$1
+   files2=$(ls $path2)
+   for filename2 in $files2
+   do
+      if [ -d "$filename2" ]; then
+      cd $filename2
+      if [ ! -f "Running1" ]; then 
+      iteration=0
+      while [ `grep -c "ZBRENT: fatal error in bracketing" output.log` -ne '0' -o `grep -c "reached required accuracy" output.log` -ne '1' ]
+      do
+      sed -i -e '/KPAR/d' INCAR
+      echo "KPAR = kpar" >> INCAR
+      sed -i -e '/NCORE/d' INCAR
+      echo "NCORE = ncore" >> INCAR
+      cp CONTCAR POSCAR
+      echo "t" >> Running1
+      srun vasp_std &> output.log
+      let iteration++
+      if [ $iteration -gt 3 ]; then
+         sed -i -e '/IBRION/d' INCAR
+         echo "IBRION = 1" >> INCAR
+         cp CONTCAR POSCAR
+         srun vasp_std &> output.log
+      fi
+      done
+      fi
+      cd ../
+      fi
+   done
+   cd ../
+   fi
+done

@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH -J zlsong
+#SBATCH -p queue
+#SBATCH -N 1
+#SBATCH -n 00
+#SBATCH -o %j.log
+#SBATCH -e %j.log
+
+export I_MPI_ADJUST_REDUCE=3
+
+module load vasp/6.1.2
+
+

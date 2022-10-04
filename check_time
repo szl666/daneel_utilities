@@ -1,0 +1,1 @@
+grep time OUTCAR | tail -4

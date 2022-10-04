@@ -1,0 +1,117 @@
+#!/bin/bash
+
+###
+### Author:
+###   宋志龙        
+###
+### Description:
+###   Vasp tasks submission script (machine learning group)
+###
+### Usage:
+###   sub_vasp <submission type> <queue> <INCAR path>
+###
+### Options:
+###
+###   <submission type>   
+###   normal ------ Normal single task submission
+###   batch1 ------ One-level directories batch tasks submission
+###   batch2 ------ Two-level directories batch tasks submission
+###   auto_batch ------ Batch submit directories containing INCAR
+###   relax_correct ------ Normal single task(relax correction) submission
+###   batch_relax_correct1 ------ One-level directories batch tasks(relax correction) submission
+###   batch_relax_correct2 ------ Two-level directories batch tasks(relax correction) submission
+###   auto_batch_relax_correct ------ Batch submit directories containing INCAR(relax correction)
+###   customized ------  Submit task(s) with customized script (Please write a script named calculation_script_file, 
+###   only the statements used to run the program is needed, e.g. srun vasp_std &> output.log)
+###
+###   <queue>  Selected queue (optional)
+###   wang ------ queue wang (default, no need to input)
+###   zhou12 ------ queue zhou (z01, z02)
+###   zhou3 ------ queue zhou (z03)
+###   zhou4 ------ queue zhou (z04)
+###
+###   <INCAR path>  The INCAR file path for all tasks (optional)
+###   example: /home/zlsong/slab_opt_CH4_path/INCAR
+###
+###   -h        Show this message
+
+help() {
+    sed -rn 's/^### ?//;T;p;' "$0"
+}
+
+if [[ "$1" == "-h" ]]; then
+	    help
+	    exit 1
+fi
+
+if [ ! -n "$2" ] ;then
+  cpus="48"
+  kpar=4
+  ncore=4
+  queue="wang"
+elif [ $2 == "zhou3" ] ;then
+  cpus="36"
+  kpar=3
+  ncore=4
+  queue="zhou"
+elif [ $2 == "zhou4" ] ;then
+  cpus="48"
+  kpar=4
+  ncore=4
+  queue="zhou"
+elif [ $2 == "zhou12" ] ;then
+  cpus="28"
+  kpar=1
+  ncore=7
+  queue="zhou"
+else
+  cpus="48"
+  kpar=4
+  ncore=4
+  queue="wang"
+fi
+
+if [ $1 == "normal" ] ;then
+    echo "Normal VASP calculation is submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_normal > sub_vasp_script
+elif [ $1 == "batch1" ] ;then
+    echo "Batch VASP calculations are submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_batch1 > sub_vasp_script
+elif [ $1 == "batch2" ] ;then
+    echo "Batch VASP calculations are submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_batch2 > sub_vasp_script
+elif [ $1 == "auto_batch" ] ;then
+    echo "Batch VASP calculations are submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_auto_batch > sub_vasp_script
+elif [ $1 == "relax_correct" ] ;then
+    echo "Normal VASP calculation relax correction is submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_relax_correct > sub_vasp_script
+elif [ $1 == "batch_relax_correct1" ] ;then
+    echo "Batch VASP calculations relax corrections are submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_batch_relax_correct1 > sub_vasp_script
+elif [ $1 == "batch_relax_correct2" ] ;then
+    echo "Batch VASP calculations relax corrections are submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_batch_relax_correct2 > sub_vasp_script
+elif [ $1 == "auto_batch_relax_correct" ] ;then
+    echo "Batch VASP calculations relax corrections are submitted."
+    cat /public/home/zlsong/script/sub_script_head /public/home/zlsong/script/calculation_script_file_auto_batch_relax_correct > sub_vasp_script
+elif [ $1 == "customized" ] ;then
+    echo "Customized VASP calculations are submitted."
+    cat /public/home/zlsong/script/sub_script_head calculation_script_file > sub_vasp_script
+fi
+
+
+if [ ! -n "$3" ] ;then
+  sed -e '/cp incar_path INCAR/d'  sub_vasp_script
+#   cp /home/zlsong/slab_opt_CH4_path/INCAR INCAR
+else
+  sed -i "s/incar_path/$3/g" sub_vasp_script
+fi
+
+sed -i "s/kpar/$kpar/g" sub_vasp_script
+sed -i "s/ncore/$ncore/g" sub_vasp_script
+sed -i "s/00/$cpus/g" sub_vasp_script
+sed -i "s/queue/$queue/g" sub_vasp_script
+
+dos2unix sub_vasp_script
+sbatch sub_vasp_script

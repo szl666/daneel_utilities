@@ -1,0 +1,20 @@
+ff=(`find ./ -name 'INCAR' |sort `)
+for index in "${!ff[@]}"
+do 
+  task_path=${ff[index]:0:(-5)}
+  if [ -d "$task_path" ]; then
+  cd $task_path
+  if [ ! -f "CONTCAR" -a ! -f "Running" ]; then
+  # cp /home/zlsong/slab_opt_CH4_path/INCAR INCAR
+  cp incar_path INCAR
+  sed -i -e '/KPAR/d' INCAR
+  echo "KPAR = kpar" >> INCAR
+  sed -i -e '/NCORE/d' INCAR
+  echo "NCORE = ncore" >> INCAR
+  echo "t" >> Running
+  srun vasp_std &> output.log
+  fi
+  cd -
+  fi
+done
+

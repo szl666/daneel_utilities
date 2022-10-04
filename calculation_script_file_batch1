@@ -1,0 +1,18 @@
+
+path1=$1
+files1=$(ls $path1)
+for filename1 in $files1
+do
+   if [ -d "$filename1" ]; then
+   cd $filename1
+   if [ ! -f "CONTCAR" ]; then 
+     cp /home/zlsong/INCARS/INCAR_GraphGAN INCAR
+     sed -i -e '/KPAR/d' INCAR
+     echo "KPAR = kpar" >> INCAR
+     sed -i -e '/NCORE/d' INCAR
+     echo "NCORE = ncore" >> INCAR
+     srun vasp_std &> output.log
+   fi
+   cd ../
+   fi
+done

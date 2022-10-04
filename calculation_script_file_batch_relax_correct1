@@ -1,0 +1,30 @@
+
+path1=$1
+files1=$(ls $path1)
+for filename1 in $files1
+do
+   if [ -d "$filename1" ]; then
+   cd $filename1
+   if [ ! -f "CONTCAR" -a ! -f "Running1" ]; then
+   sed -i -e '/KPAR/d' INCAR
+   echo "KPAR = kpar" >> INCAR
+   sed -i -e '/NCORE/d' INCAR
+   echo "NCORE = ncore" >> INCAR
+   echo "t" >> Running1
+   iteration=0
+    while [ `grep -c "ZBRENT: fatal error in bracketing" output.log` -ne '0' ]
+    do
+    cp CONTCAR POSCAR
+    srun  $VASP_BIN &> log
+    let iteration++
+    if [ $iteration -gt 3 ]; then
+        sed -i -e '/IBRION/d' INCAR
+        echo "IBRION = 1" >> INCAR
+        cp CONTCAR POSCAR
+        srun  $VASP_BIN &> log
+    fi
+    done
+   fi
+   cd ../
+   fi
+done

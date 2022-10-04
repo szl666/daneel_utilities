@@ -1,0 +1,6 @@
+
+sed -i -e '/KPAR/d' INCAR
+echo "KPAR = kpar" >> INCAR
+sed -i -e '/NCORE/d' INCAR
+echo "NCORE = ncore" >> INCAR
+srun  $VASP_BIN &> log

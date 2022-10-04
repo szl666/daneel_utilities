@@ -1,0 +1,10 @@
+#!/bin/bash
+#SBATCH -J zlsong
+#SBATCH -p wang
+#SBATCH -N 1
+#SBATCH -n 48
+#SBATCH -o %j.log
+#SBATCH -e %j.log
+
+
+

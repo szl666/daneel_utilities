@@ -1,0 +1,130 @@
+#!/bin/bash
+ff=(`find ./ -name 'OUTCAR' |sort `)
+compfile=()
+finalword=()
+isif=()
+your=()
+nbands=()
+highestband=()
+jobstatus=()
+cfile=()
+nsw=()
+nsteps=()
+
+#---- exclude some files 
+for index in "${!ff[@]}"
+do
+if [[  "${ff[index]}" != *"relax"*  ]]  && [[ "${ff[index]}" != *"old"*  ]] \
+     && [[ "${ff[index]}" != *"bak"*  ]]; then
+   cfile+=(`echo "${ff[index]}"`)
+fi
+done
+
+#----- extract some important informations
+for index  in "${!cfile[@]}"
+do
+fcontcar=`echo "${cfile[index]}" |sed  "s/OUTCAR/CONTCAR/g" `
+fposcar=`echo  "${cfile[index]}" |sed  "s/OUTCAR/POSCAR/g" ` 
+fmd1=`md5sum $fcontcar| awk '{printf "%s", $1}'`
+fmd2=`md5sum $fposcar| awk '{printf "%s", $1}'`
+if [ "$fmd1" == "$fmd2" ] ;then
+    compfile+=("Same")
+else
+    compfile+=("Diff")
+fi
+
+final_line=`tail -1  "${cfile[index]}"`
+if [  ${#final_line} -gt  0 ]; then
+    finalword+=(`echo  $final_line | awk '{printf "%s\n", $1}'`)
+else
+    finalword+=(`echo  'Blank_line'`)
+fi
+if  [  "${finalword[index]}" == 'Voluntary' ]; then
+    jobstatus+=("Success")
+else
+    jobstatus+=("Failure")
+fi
+
+tagisif=`grep   'ISIF' "${cfile[index]}"|tail -1 |awk '{printf "%s\n", $3}'`
+if [  ${#tagisif} -gt  0 ]; then
+#isif+=(`grep   'ISIF' "${cfile[index]}"|tail -1 |awk '{printf "%s\n", $3}'`)
+    isif+=(`echo $tagisif`)
+else
+    isif+=(0)
+fi
+tagnsw=`grep   'number of steps for IOM' "${cfile[index]}"|tail -1 |awk '{printf "%s\n", $3}'`
+if [  ${#tagnsw} -gt  0 ]; then
+#nsw+=(`grep   'number of steps for IOM' "${cfile[index]}"|tail -1 |awk '{printf "%s\n", $3}'`)
+    nsw+=(`echo $tagnsw `)
+else
+    nsw+=(0)
+fi
+optsteps=`grep   'Iteration' "${cfile[index]}"|tail -1 |sed  "s/(/ /g"|awk '{printf "%s\n", $3}'`
+if [  ${#optsteps} -gt  0 ]; then
+#nsteps+=(`grep   'Iteration' "${cfile[index]}"|tail -1 |sed  "s/(/ /g"|awk '{printf "%s\n", $3}'`)
+    nsteps+=(`echo $optsteps `)
+else
+    nsteps+=(0)
+fi
+yourhigh=`grep 'Your highest band is occupied at some k-points!'  "${cfile[index]}"|tail -1|awk '{printf "%s\n", $2}'`
+if [  ${#yourhigh} -gt  0 ]; then
+    your+=("insufficent")
+else
+    your+=("sufficent")
+fi
+tagnbands=`grep 'NBANDS='   "${cfile[index]}"|tail -1|  awk '{printf "%s\n", $15}'`
+if [  ${#tagnbands} -gt  0 ]; then
+#nbands+=(`grep 'NBANDS='   "${cfile[index]}"|tail -1|  awk '{printf "%s\n", $15}'`)
+    nbands+=(`echo $tagnbands`)
+else
+    nbands+=("0")
+fi
+efband=`grep 'NELECT ='  "${cfile[index]}"|tail -1|  awk '{printf "%6d\n", $3/2}'`
+if [  ${#efband} -gt  0 ]; then
+#highestband+=(`grep 'NELECT ='  "${cfile[index]}"|tail -1|  awk '{printf "%6d\n", $3/2}'`)
+    highestband+=(`echo $efband`)
+else
+    highestband+=("0")
+fi
+done
+
+# show some information on screen
+# normally finished jobs
+echo "#C_P---> Are CONTCAR and POSCAR same?"
+echo "#HBANDS---> highest bands account from total number of electrons."
+echo "#NBANDS_OK---> sufficient: setup of NBANDS is OK."
+echo "#Normally finished jobs:"
+echo "#Path"    "ISIF"  "NSW" "NSTEP" "Job_stat"  "C_P"  "NBANDS" "HBANDS" "NBANDS_OK"|\
+    awk '{printf "%-30s %-4s %-4s %-5s %-9s %-5s %-6s %-7s %-10s\n", $1,$2,$3,$4,$5,$6,$7,$8,$9}'
+for index in  "${!jobstatus[@]}"
+do
+    if [  "${jobstatus[index]}" == 'Success'  ];then
+    echo "${cfile[index]}"     "${isif[index]}"       "${nsw[index]}" \
+          "${nsteps[index]}"   "${jobstatus[index]}"  "${compfile[index]}"  \
+          "${nbands[index]}"   "${highestband[index]}" "${your[index]}"  |\
+   awk '{printf "%-30s %-2d %5d %5d %9s %5s %6d %6d %10s\n", $1,$2,$3,$4,$5,$6,$7,$8, $9}'
+    fi
+done
+
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+echo "#Abnormally finished jobs:"
+echo "#Path"    "ISIF"  "NSW" "NSTEP" "Job_stat"  "C_P"  "NBANDS" "HBANDS" "NBANDS_OK"|\
+    awk '{printf "%-30s %-4s %-4s %-5s %-9s %-5s %-6s %-7s %-10s\n", $1,$2,$3,$4,$5,$6,$7,$8,$9}'
+for index in  "${!jobstatus[@]}"
+do
+    if [  "${jobstatus[index]}" != 'Success'  ];then
+    echo "${cfile[index]}"  "${isif[index]}"            "${nsw[index]}" \
+         "${nsteps[index]}" "${jobstatus[index]}"       "${compfile[index]}"  \
+         "${nbands[index]}" "${highestband[index]}"     "${your[index]}"|\
+    awk '{printf "%-30s %-2d %5d %5d %9s %5s %6d %6d %10s\n", $1,$2,$3,$4,$5,$6,$7,$8, $9}'
+    fi
+done
+
+echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#for index in  "${!jobstatus[@]}"
+#do
+#    echo "${cfile[index]}"  "${isif[index]}"            "${nsw[index]}" \
+#         "${nsteps[index]}" "${jobstatus[index]}"       "${compfile[index]}"  \
+#         "${nbands[index]}" "${highestband[index]}"     "${your[index]}"|\
+#    awk '{printf "%-30s %-2d %5d %5d %9s %5s %6d %6d %10s\n", $1,$2,$3,$4,$5,$6,$7,$8, $9}'
+#done
