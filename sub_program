@@ -1,0 +1,19 @@
+#!/bin/bash
+if [ ! -n "$1" ] ;then
+    if [ ! -f "command_file" ]; then 
+        echo "Please write a command_file."
+        exit 0
+    else
+        cat /public/home/zlsong/script/sub_script_head_py command_file > sub_py_script
+    fi
+else
+    echo $1 >> command_file
+    cat /public/home/zlsong/script/sub_script_head_py command_file > sub_py_script
+fi
+
+dos2unix sub_py_script
+sbatch sub_py_script
+cp command_file command_file_running
+rm command_file
+
+    
