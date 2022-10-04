@@ -4,7 +4,7 @@ sub_vasp ------ 自动批量提交VASP任务，结构优化任务自动纠错(�
 
 sub_program ------ 提交程序任务到wang队列(修改队列可修改sub_script_head_py文件)，使用示例：sub_python "python ..."，或写一个文件名为command_file，里面写入程序命令，然后输入sub_python
 
-sub_gpu ------ 提交程序任务到GPU节点，使用示例：sub_gpu "python ..."，或写一个文件名为command_file，里面写入程序命令，然后输入sub_gpu
+sub_gpu ------ 提交程序任务到GPU节点(修改GPU数量可修改sub_script_head_gpu文件)，使用示例：sub_gpu "python ..."，或写一个文件名为command_file，里面写入程序命令，然后输入sub_gpu
 
 check_energy ------ 查看VASP优化任务结果，得到能量随离子步变化关系
 
